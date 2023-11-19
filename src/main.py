@@ -8,6 +8,7 @@ import os
 import sys
 
 from src.songs import SongsHandler
+from cogs.admin import AdminCog
 
 load_dotenv()
 
@@ -43,6 +44,7 @@ class DiscordBot(commands.Bot):
             self.CHANNEL = self.get_channel(DISCORD_VOICE_CHANNEL_ID)
 
             guilds = [guild async for guild in client.fetch_guilds(limit=150)]
+            await self.add_cog(AdminCog(self))
             for guild in guilds:
                 self.tree.copy_global_to(guild=discord.Object(id=guild.id))
             await self.tree.sync()
@@ -71,7 +73,7 @@ class DiscordBot(commands.Bot):
             discord.FFmpegPCMAudio(executable="ffmpeg", source=self.CURRENT_SONG.path)
         )
 
-        embed = discord.embeds.Embed(
+        embed = discord.Embed(
             color=discord.Color.blurple(),
             description=f"Now playing: {self.CURRENT_SONG}",
         )
@@ -108,7 +110,7 @@ class DiscordBot(commands.Bot):
         ) > SKIP_VOTE_PERCENTAGE / 100:
             await client.play_next()
 
-            embed = discord.embeds.Embed(
+            embed = discord.Embed(
                 color=discord.Color.green(),
                 description=f"The active skip vote passed due to a user disconnecting. Now playing: {client.CURRENT_SONG}",
             )
@@ -125,7 +127,7 @@ async def _help(interaction: discord.Interaction) -> None:
         [f"</{c.name}:{c.id}>: {c.description}" for c in commands]
     )
 
-    embed = discord.embeds.Embed(color=discord.Color.magenta(), description=listing)
+    embed = discord.Embed(color=discord.Color.magenta(), description=listing)
     embed.set_author(
         name="Commands",
         icon_url=client.user.display_avatar.url,
@@ -135,7 +137,7 @@ async def _help(interaction: discord.Interaction) -> None:
 
 @client.tree.command(name="np", description="See information about current song")
 async def _np(interaction: discord.Interaction) -> None:
-    embed = discord.embeds.Embed(
+    embed = discord.Embed(
         color=discord.Color.blurple(),
         description=f"The current song is: {client.CURRENT_SONG}",
     )
@@ -146,7 +148,7 @@ async def _np(interaction: discord.Interaction) -> None:
 async def _q(interaction: discord.Interaction) -> None:
     listing = "\n".join([f"`{i+1}`: {s}" for i, s in enumerate(client.SONGS.up_next)])
 
-    embed = discord.embeds.Embed(
+    embed = discord.Embed(
         color=discord.Color.blurple(),
         description=listing,
     )
@@ -154,15 +156,16 @@ async def _q(interaction: discord.Interaction) -> None:
 
 
 @client.tree.command(name="skip", description="Vote to skip the current song")
+@commands.has_permissions(manage_guild=True)
 async def _skip(interaction: discord.Interaction) -> None:
     if interaction.user.id in client.skip_voters:
-        embed = discord.embeds.Embed(
+        embed = discord.Embed(
             color=discord.Color.red(), description="You have already voted to skip!"
         )
         await interaction.response.send_message(embed=embed)
 
     if interaction.user not in client.CHANNEL.members:
-        embed = discord.embeds.Embed(
+        embed = discord.Embed(
             color=discord.Color.red(),
             description="You're not in the voice channel!",
         )
@@ -178,13 +181,13 @@ async def _skip(interaction: discord.Interaction) -> None:
     ) > SKIP_VOTE_PERCENTAGE / 100:
         await client.play_next()
 
-        embed = discord.embeds.Embed(
+        embed = discord.Embed(
             color=discord.Color.green(),
             description=f"Skip vote passed. Now playing: {client.CURRENT_SONG}",
         )
         await interaction.response.send_message(embed=embed)
     else:
-        embed = discord.embeds.Embed(
+        embed = discord.Embed(
             color=discord.Color.blurple(),
             description="You have voted to skip the current song.",
         )

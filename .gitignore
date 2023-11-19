@@ -1,6 +1,7 @@
 __pycache__
 
 src/.env
+src/songs
 
 # ffmpeg -- locally hosted non-docker
 src/ffmpeg.exe

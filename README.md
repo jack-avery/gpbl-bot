@@ -19,7 +19,7 @@ If you have [**Docker**](https://www.docker.com/), you can use the provided `doc
 *For updates (after a `git pull`), you will need to `docker-compose restart` to apply the changes to an active container*
 
 If you don't have/don't want to use Docker, you can still continue as so:
-1. Download and install [Python version 3.11.0+](https://www.python.org/downloads/).
+1. Download and install [Python version 3.12.0+](https://www.python.org/downloads/).
 2. Download dependencies: `python3 -m pip install -r src/requirements.txt`.
 3. Run locally hosted instance: `cd src && python3 main.py`.
 
