@@ -42,7 +42,7 @@ class SongsHandler:
             songs = yaml.safe_load(meta.read())
 
         if len(songs) < lookahead:
-            raise ValueError("lookahead too small: not enough songs to populate")
+            raise ValueError("lookahead too large: not enough songs to populate")
 
         for s in songs:
             song = Song(s["file"], s["rapper1"], s["rapper2"], s["league"], folder)
@@ -53,6 +53,9 @@ class SongsHandler:
 
     def choose(self, count: int = 1):
         for _ in range(count):
+            if len(self.__choose_songs) == 0:
+                raise ValueError("no more distinct songs to populate lookahead")
+
             song = random.choice(self.__choose_songs)
             self.__choose_songs.remove(song)
             self.up_next.append(song)
