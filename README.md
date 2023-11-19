@@ -8,7 +8,7 @@
 
 # How to Use ✍️
 
-This bot is currently hosted by me for the **Ghetto Poetry Battle League** Discord server, and the `songs` folder contains the songs for the server.
+This bot is currently hosted by me for the **Ghetto Poetry Battle League** Discord server.
 
 ***Alternatively, to host it yourself...***
 1. Download the Source Code. Click on **Code** and **Download ZIP**.
