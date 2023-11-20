@@ -37,10 +37,9 @@ class DiscordBot(commands.Bot):
     def __init__(self):
         intents = discord.Intents()
         intents.guilds = True
-        intents.guild_messages = True
         intents.voice_states = True
 
-        super().__init__(command_prefix="b$", intents=intents)
+        super().__init__(command_prefix="gpbl$", intents=intents)
         self.SONGS = SongsHandler(folder=SONGS_LOCATION, lookahead=SONGS_LOOKAHEAD)
         self.SETUP = False
 
