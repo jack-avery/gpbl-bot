@@ -35,7 +35,12 @@ class DiscordBot(commands.Bot):
     skip_voters = list[int]
 
     def __init__(self):
-        super().__init__(command_prefix="b$", intents=discord.Intents().all())
+        intents = discord.Intents()
+        intents.guilds = True
+        intents.guild_messages = True
+        intents.voice_states = True
+
+        super().__init__(command_prefix="b$", intents=intents)
         self.SONGS = SongsHandler(folder=SONGS_LOCATION, lookahead=SONGS_LOOKAHEAD)
         self.SETUP = False
 
