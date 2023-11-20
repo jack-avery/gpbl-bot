@@ -1,12 +1,7 @@
-05_Way_Of_The_Bedroom_Worrier.mp3:
-  league: league name
-  rapper1: rapper name
-  rapper2: rapper name
-PARTY_SIRENS.mp3:
-  league: league name
-  rapper1: rapper name
-  rapper2: rapper name
-audio.mp3:
-  league: modify test
-  rapper1: rapper name
-  rapper2: rapper name
+# sample
+# filename.mp3:
+#   rapper1: rapper name
+#   rapper2: rapper name
+#   league: league name
+
+{}

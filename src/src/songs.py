@@ -46,6 +46,14 @@ class Song:
     def __str__(self) -> str:
         return f"**{self.rapper1}** vs **{self.rapper2}** - {self.league} (`{self.length}`)"
 
+    json_sample: str = (
+        "# sample entry\n"
+        + "# filename.mp3:\n"
+        + "#   rapper1: rapper name\n"
+        + "#   rapper2: rapper name\n"
+        + "#   league: league name\n\n"
+    )
+
     def json(self) -> dict:
         return {
             "rapper1": self.rapper1,
@@ -149,5 +157,8 @@ class SongsHandler:
         for file, song in out.items():
             out[file] = song.json()
 
+        out_s = Song.json_sample
+        out_s += yaml.dump(out)
+
         with open(f"{self.folder}/meta.yml", "w") as meta:
-            meta.write(yaml.dump(out))
+            meta.write(out_s)
