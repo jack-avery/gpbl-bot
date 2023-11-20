@@ -8,6 +8,8 @@ import os
 import sys
 
 from src.songs import SongsHandler
+
+from cogs.user import UserCog
 from cogs.admin import AdminCog
 
 load_dotenv()
@@ -45,6 +47,7 @@ class DiscordBot(commands.Bot):
 
             guilds = [guild async for guild in client.fetch_guilds(limit=150)]
             await self.add_cog(AdminCog(self))
+            await self.add_cog(UserCog(self))
             for guild in guilds:
                 self.tree.copy_global_to(guild=discord.Object(id=guild.id))
             await self.tree.sync()
@@ -132,7 +135,7 @@ async def _help(interaction: discord.Interaction) -> None:
         name="Commands",
         icon_url=client.user.display_avatar.url,
     )
-    await interaction.response.send_message(embed=embed)
+    await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 @client.tree.command(name="np", description="See information about current song")
@@ -156,7 +159,6 @@ async def _q(interaction: discord.Interaction) -> None:
 
 
 @client.tree.command(name="skip", description="Vote to skip the current song")
-@commands.has_permissions(manage_guild=True)
 async def _skip(interaction: discord.Interaction) -> None:
     if interaction.user.id in client.skip_voters:
         embed = discord.Embed(

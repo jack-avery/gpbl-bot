@@ -5,76 +5,23 @@ from discord.ext import commands
 from discord import app_commands, Button
 
 from src.songs import Song, VALID_FILE
+from cogs.base_cog import SongsListView
 
 
-class SongsListView(discord.ui.View):
-    PAGE_SIZE = 10
-
+class AdminListView(SongsListView):
     def __init__(self, songs: dict[str, Song]):
-        super().__init__()
-        self.page = 0
-
-        songs = [s for s in songs.values()]
-        self.songs: list[list[Song]] = [
-            songs[i : i + self.PAGE_SIZE] for i in range(0, len(songs), self.PAGE_SIZE)
-        ]
-
-        self.set_nav()
+        super().__init__(songs)
 
     def create_embed(self, page: int) -> discord.Embed:
         embed = discord.Embed(colour=discord.Colour.blurple())
 
         song: Song
-        for song in self.songs[page]:
-            embed.add_field(name=f"`{song.file}`", value=song)
+        for i, song in enumerate(self.songs[page]):
+            num = (page * 10) + i + 1
+            embed.add_field(name=f"`{num}`: `{song.file}`", value=song)
 
         embed.set_footer(text=f"Page {page+1} of {len(self.songs)}")
-
         return embed
-
-    def set_nav(self):
-        for child in self.children:
-            child: Button
-            if type(child) == discord.ui.Button:
-                if child.custom_id == "prev":
-                    if self.page == 0:
-                        child.disabled = True
-                    elif child.disabled and self.page != 0:
-                        child.disabled = False
-
-                elif child.custom_id == "next":
-                    if self.page == len(self.songs) - 1:
-                        child.disabled = True
-                    elif child.disabled and self.page != len(self.songs) - 1:
-                        child.disabled = False
-
-    @discord.ui.button(
-        custom_id="prev", emoji="⬅️", style=discord.ButtonStyle.secondary
-    )
-    async def prev_callback(
-        self,
-        interaction: discord.Interaction,
-        button: discord.Button,
-    ):
-        self.page -= 1
-        self.set_nav()
-        await interaction.response.edit_message(
-            embed=self.create_embed(self.page), view=self
-        )
-
-    @discord.ui.button(
-        custom_id="next", emoji="➡️", style=discord.ButtonStyle.secondary
-    )
-    async def next_callback(
-        self,
-        interaction: discord.Interaction,
-        button: discord.Button,
-    ):
-        self.page += 1
-        self.set_nav()
-        await interaction.response.edit_message(
-            embed=self.create_embed(self.page), view=self
-        )
 
 
 class AdminCog(commands.Cog):
@@ -86,17 +33,20 @@ class AdminCog(commands.Cog):
         self.bot = bot
 
     @group.command(name="list", description="List songs")
-    @commands.has_permissions(manage_guild=True)
+    @app_commands.checks.has_permissions(administrator=True)
     async def _list(self, interaction: discord.Interaction):
-        view = SongsListView(self.bot.SONGS.songs)
+        view = AdminListView(self.bot.SONGS.songs)
         embed = view.create_embed(0)
-        await interaction.response.send_message(
-            embed=embed,
-            view=view,
-        )
+        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+
+    @_list.error
+    async def _list_error(self, interaction: discord.Interaction, error):
+        if isinstance(error, discord.app_commands.errors.MissingPermissions):
+            await interaction.response.send_message(error, ephemeral=True)
+            return
 
     @group.command(name="remove", description="Remove a song")
-    @commands.has_permissions(manage_guild=True)
+    @app_commands.checks.has_permissions(administrator=True)
     @discord.app_commands.describe(
         file="file to remove",
     )
@@ -134,8 +84,14 @@ class AdminCog(commands.Cog):
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+    @_remove.error
+    async def _remove_error(self, interaction: discord.Interaction, error):
+        if isinstance(error, discord.app_commands.errors.MissingPermissions):
+            await interaction.response.send_message(error, ephemeral=True)
+            return
+
     @group.command(name="add", description="Add a new song")
-    @commands.has_permissions(manage_guild=True)
+    @app_commands.checks.has_permissions(administrator=True)
     @discord.app_commands.describe(
         rapper1="rapper name for rapper 1",
         rapper2="rapper name for rapper 2",
@@ -178,8 +134,14 @@ class AdminCog(commands.Cog):
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
 
+    @_add.error
+    async def _add_error(self, interaction: discord.Interaction, error):
+        if isinstance(error, discord.app_commands.errors.MissingPermissions):
+            await interaction.response.send_message(error, ephemeral=True)
+            return
+
     @group.command(name="edit", description="Edit a song's data")
-    @commands.has_permissions(manage_guild=True)
+    @app_commands.checks.has_permissions(administrator=True)
     @discord.app_commands.describe(
         file="file to modify",
         rapper1="rapper name for rapper 1",
@@ -231,3 +193,26 @@ class AdminCog(commands.Cog):
             description=f"Modified `{file}`, is now {song}.",
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
+
+    @_edit.error
+    async def _edit_error(self, interaction: discord.Interaction, error):
+        if isinstance(error, commands.MissingPermissions):
+            await interaction.response.send_message(error, ephemeral=True)
+            return
+
+    @group.command(name="skip", description="Skip the current song")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def _skip(self, interaction: discord.Interaction):
+        await self.bot.play_next()
+
+        embed = discord.Embed(
+            color=discord.Color.green(),
+            description=f"Administrator forced skip. Now playing: {self.bot.CURRENT_SONG}",
+        )
+        await interaction.response.send_message(embed=embed)
+
+    @_skip.error
+    async def _skip_error(self, interaction: discord.Interaction, error):
+        if isinstance(error, discord.app_commands.errors.MissingPermissions):
+            await interaction.response.send_message(error, ephemeral=True)
+            return
