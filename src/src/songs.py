@@ -37,6 +37,7 @@ class Song:
         self.length_secs = round(float(ffmpeg.probe(self.path)["format"]["duration"]))
         m = math.floor(self.length_secs / 60)
         s = self.length_secs % 60
+        s = f"0{s}" if s < 10 else s
         self.length = f"{m}:{s}"
 
     def __repr__(self) -> str:
