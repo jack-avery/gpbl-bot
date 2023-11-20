@@ -82,7 +82,7 @@ class AdminCog(commands.Cog):
             colour=discord.Colour.green(),
             description=f"Removed `{file}` ({song}).",
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed)
 
     @_remove.error
     async def _remove_error(self, interaction: discord.Interaction, error):
@@ -132,7 +132,7 @@ class AdminCog(commands.Cog):
             colour=discord.Colour.green(),
             description=f"Added `{audio.filename}` as {song}.",
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed)
 
     @_add.error
     async def _add_error(self, interaction: discord.Interaction, error):
@@ -192,7 +192,7 @@ class AdminCog(commands.Cog):
             colour=discord.Colour.green(),
             description=f"Modified `{file}`, is now {song}.",
         )
-        await interaction.response.send_message(embed=embed, ephemeral=True)
+        await interaction.response.send_message(embed=embed)
 
     @_edit.error
     async def _edit_error(self, interaction: discord.Interaction, error):
