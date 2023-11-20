@@ -21,7 +21,7 @@ class Song:
     __folder: str
 
     def __init__(
-        self, file: str, rapper1: str, rapper2: str, league: str, folder: str = "."
+        self, file: str, rapper1: str, rapper2: str, league: str, folder: str = "songs"
     ):
         if not VALID_FILE.match(file):
             raise ValueError(f"invalid filename: {file}")
@@ -68,19 +68,43 @@ class SongsHandler:
         self.reload()
 
     def choose(self, count: int = 1):
+        """Attempt to populate `count` slots of `up_next`.
+
+        :param count: Slots to populate
+        """
         for _ in range(count):
             if len(self.__choose_songs) == 0:
-                raise ValueError("no more distinct songs to populate lookahead")
+                return
 
             song = random.choice(self.__choose_songs)
             self.__choose_songs.remove(song)
             self.up_next.append(song)
 
     def add(self, song: Song):
+        """Add `song` to this `SongHandler`.
+
+        :param song: The `Song` object to add
+        """
+        if song.file in self.songs:
+            raise KeyError(f"{song.file} already exists")
+
         self.songs[song.file] = song
         self.__choose_songs.append(song)
 
+        if len(self.up_next) < self.lookahead:
+            self.choose()
+
     def remove(self, song: str) -> Song:
+        """Remove `song` from this `SongHandler`.
+
+        Returns the song object removed.
+
+        :param song: The song to remove
+        :returns: The `Song` that got removed
+        """
+        if song not in self.songs:
+            raise KeyError(f"{song} does not exist")
+
         song = self.songs.pop(song)
         if song in self.up_next:
             self.up_next.remove(song)
@@ -91,13 +115,18 @@ class SongsHandler:
         return song
 
     def next(self) -> Song:
+        """Grab the next song in `up_next` and remove it from the queue."""
+        if len(self.up_next) == 0:
+            return None
+
         song = self.up_next.pop(0)
-        self.choose()
         self.__choose_songs.append(song)
+        self.choose()
 
         return song
 
     def reload(self):
+        """Reload this `SongsHandler`'s song data from disk."""
         self.songs = {}
         self.__choose_songs = []
         self.up_next = []
@@ -105,8 +134,8 @@ class SongsHandler:
         with open(f"{self.folder}/meta.yml") as meta:
             songs: dict = yaml.safe_load(meta.read())
 
-        if len(songs) < self.lookahead:
-            raise ValueError("lookahead too large: not enough songs to populate")
+        if not songs:
+            return
 
         for file, s in songs.items():
             song = Song(file, s["rapper1"], s["rapper2"], s["league"], self.folder)
@@ -115,6 +144,7 @@ class SongsHandler:
         self.choose(self.lookahead)
 
     def save(self):
+        """Save this `SongsHandler`'s song data to disk."""
         out: dict[str, Song] = self.songs.copy()
         for file, song in out.items():
             out[file] = song.json()

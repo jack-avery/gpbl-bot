@@ -28,6 +28,14 @@ class UserCog(commands.Cog):
 
     @app_commands.command(name="list", description="List songs")
     async def _list(self, interaction: discord.Interaction):
+        if len(self.bot.SONGS.songs) == 0:
+            embed = discord.Embed(
+                colour=discord.Colour.blurple(),
+                description="There are no songs at the moment.",
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
         view = UserListView(self.bot.SONGS.songs)
         embed = view.create_embed(0)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)

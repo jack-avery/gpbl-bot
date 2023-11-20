@@ -35,6 +35,14 @@ class AdminCog(commands.Cog):
     @group.command(name="list", description="List songs")
     @app_commands.checks.has_permissions(administrator=True)
     async def _list(self, interaction: discord.Interaction):
+        if len(self.bot.SONGS.songs) == 0:
+            embed = discord.Embed(
+                colour=discord.Colour.blurple(),
+                description="There are no songs at the moment.",
+            )
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            return
+
         view = AdminListView(self.bot.SONGS.songs)
         embed = view.create_embed(0)
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
@@ -42,6 +50,10 @@ class AdminCog(commands.Cog):
     @_list.error
     async def _list_error(self, interaction: discord.Interaction, error):
         if isinstance(error, discord.app_commands.errors.MissingPermissions):
+            await interaction.response.send_message(error, ephemeral=True)
+            return
+
+        if interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(error, ephemeral=True)
             return
 
@@ -76,7 +88,8 @@ class AdminCog(commands.Cog):
 
         song: Song = self.bot.SONGS.remove(file)
         self.bot.SONGS.save()
-        os.remove(song.path)
+        if song == self.bot.CURRENT_SONG:
+            await self.bot.play_next()
 
         embed = discord.Embed(
             colour=discord.Colour.green(),
@@ -87,6 +100,10 @@ class AdminCog(commands.Cog):
     @_remove.error
     async def _remove_error(self, interaction: discord.Interaction, error):
         if isinstance(error, discord.app_commands.errors.MissingPermissions):
+            await interaction.response.send_message(error, ephemeral=True)
+            return
+
+        if interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(error, ephemeral=True)
             return
 
@@ -137,6 +154,10 @@ class AdminCog(commands.Cog):
     @_add.error
     async def _add_error(self, interaction: discord.Interaction, error):
         if isinstance(error, discord.app_commands.errors.MissingPermissions):
+            await interaction.response.send_message(error, ephemeral=True)
+            return
+
+        if interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(error, ephemeral=True)
             return
 
@@ -200,6 +221,10 @@ class AdminCog(commands.Cog):
             await interaction.response.send_message(error, ephemeral=True)
             return
 
+        if interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message(error, ephemeral=True)
+            return
+
     @group.command(name="skip", description="Skip the current song")
     @app_commands.checks.has_permissions(administrator=True)
     async def _skip(self, interaction: discord.Interaction):
@@ -214,5 +239,9 @@ class AdminCog(commands.Cog):
     @_skip.error
     async def _skip_error(self, interaction: discord.Interaction, error):
         if isinstance(error, discord.app_commands.errors.MissingPermissions):
+            await interaction.response.send_message(error, ephemeral=True)
+            return
+
+        if interaction.user.guild_permissions.administrator:
             await interaction.response.send_message(error, ephemeral=True)
             return

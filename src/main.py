@@ -65,7 +65,6 @@ class DiscordBot(commands.Bot):
 
     async def play_next(self):
         session: discord.VoiceClient = self.CHANNEL.guild.voice_client
-
         if not session.is_connected():
             await self.CHANNEL.connect()
 
@@ -73,6 +72,10 @@ class DiscordBot(commands.Bot):
             session.stop()
 
         self.CURRENT_SONG = self.SONGS.next()
+        if not self.CURRENT_SONG:
+            await asyncio.sleep(1)
+            return
+
         logging.info(f"Now playing: {self.CURRENT_SONG}")
 
         self.skip_voters = []
@@ -144,16 +147,25 @@ async def _help(interaction: discord.Interaction) -> None:
 
 @client.tree.command(name="np", description="See information about current song")
 async def _np(interaction: discord.Interaction) -> None:
+    listing = (
+        f"The current song is: {client.CURRENT_SONG}"
+        if client.CURRENT_SONG
+        else "Nothing is playing at the moment."
+    )
     embed = discord.Embed(
         color=discord.Color.blurple(),
-        description=f"The current song is: {client.CURRENT_SONG}",
+        description=listing,
     )
     await interaction.response.send_message(embed=embed)
 
 
 @client.tree.command(name="q", description="See the upcoming songs queue")
 async def _q(interaction: discord.Interaction) -> None:
-    listing = "\n".join([f"`{i+1}`: {s}" for i, s in enumerate(client.SONGS.up_next)])
+    listing = (
+        "\n".join([f"`{i+1}`: {s}" for i, s in enumerate(client.SONGS.up_next)])
+        if len(client.SONGS.up_next) != 0
+        else "There is nothing in queue at the moment."
+    )
 
     embed = discord.Embed(
         color=discord.Color.blurple(),
