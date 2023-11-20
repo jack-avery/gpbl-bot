@@ -2,7 +2,7 @@ import os
 
 import discord
 from discord.ext import commands
-from discord import app_commands, Button
+from discord import app_commands
 
 from src.songs import Song, VALID_FILE
 from cogs.base_cog import SongsListView
