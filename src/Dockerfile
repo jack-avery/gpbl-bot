@@ -1,11 +1,10 @@
 # Pull base image
-FROM python:3.11.1-slim-buster
+FROM alpine:latest
 
 ## install dependencies
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y netcat-openbsd gcc ffmpeg && \
-    apt-get clean
+RUN apk update && \
+    apk add python3~3.11 && \
+    apk add py3-pip
 
 # Set environment variables
 ENV PIP_DISABLE_PIP_VERSION_CHECK 1
@@ -19,4 +18,4 @@ WORKDIR /code
 COPY requirements.txt .
 
 # Install dependencies
-RUN pip install -r requirements.txt
+RUN pip install --break-system-packages -r requirements.txt
