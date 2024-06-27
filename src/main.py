@@ -116,13 +116,13 @@ class DiscordBot(commands.Bot):
             return
 
         if (
-            len(client.skip_voters) / (len(client.CHANNEL.members) - 1)
+            len(self.skip_voters) / (len(self.CHANNEL.members) - 1)
         ) > SKIP_VOTE_PERCENTAGE / 100:
-            await client.play_next()
+            await self.play_next()
 
             embed = discord.Embed(
                 color=discord.Color.green(),
-                description=f"The active skip vote passed due to a user disconnecting. Now playing: {client.CURRENT_SONG}",
+                description=f"The active skip vote passed due to a user disconnecting. Now playing: {self.CURRENT_SONG}",
             )
             await self.CHANNEL.send(embed=embed)
 
